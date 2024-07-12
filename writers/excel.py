@@ -1,16 +1,14 @@
-from file_writer import FileWriter
+from writers import Writer
 
-class ExcelWriter(FileWriter):
+class Excel(Writer):
     def __init__(self):
         super().__init__()
 
-    def write(self):
+    def write(self, batch_data):
         self._create_dataframe()
 
         super().write()
 
-
 if __name__ == "__main__":
-    writer = ExcelWriter()
-
+    writer = Excel()
     writer.write()
