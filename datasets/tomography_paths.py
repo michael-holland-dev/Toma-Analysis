@@ -21,4 +21,11 @@ class TomographyPaths(Dataset):
         return self.fpaths.pop(index)
     
     def __getitem__(self, index):
-        return self.fpaths[index]
+        return {
+                "data": self.fpaths[index]
+            }
+    
+
+if __name__ == "__main__":
+    paths = TomographyPaths("/home/mwh1998/fsl_groups/", 10)
+    print(paths[0])

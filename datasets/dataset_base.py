@@ -41,5 +41,3 @@ class Dataset(ABC):
     @abstractmethod
     def pop(self):
         pass
-
-        

@@ -1,5 +1,5 @@
 from analyzers import Analysis
 
 class Basic(Analysis):
-    def __init__(self):
-        pass
+    def analyze(self, data, results, **kwargs):
+        results.append({"file_path": data})

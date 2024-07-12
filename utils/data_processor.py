@@ -32,7 +32,7 @@ class Processor:
             batch_results = self.__threader.submit_batch(current_batch)
 
             # Write the results to the file.
-            self.__writer.write_batch(batch_results)
+            self.__writer.write(batch_results)
 
             if self.__checkpointer:
                 if not self.__checkpointer.interval % batch_num:

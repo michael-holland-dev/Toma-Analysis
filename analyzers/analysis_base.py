@@ -8,5 +8,5 @@ class Analysis(ABC):
         pass
 
     @abstractmethod
-    def analyze(self, data, results, **kwargs):
+    def analyze(self, data, results: list, **kwargs):
         pass

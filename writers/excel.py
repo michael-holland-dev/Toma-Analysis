@@ -4,7 +4,7 @@ class Excel(Writer):
     def __init__(self):
         super().__init__()
 
-    def write(self):
+    def write(self, batch_data):
         self._create_dataframe()
 
         super().write()
