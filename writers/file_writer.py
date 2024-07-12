@@ -1,11 +1,12 @@
 
 class FileWriter:
-    def __init__(self):
+    def __init__(self, filename):
         self.file_path = "./myfile.csv"
-        print("Test")
+        
 
-    def _create_dataframe(self):
-        print("Created_Dataframe")
+    def _create_dataframe(self, first_row):
+        self.first_row = first_row
+        
 
 if __name__ == "__main__":
     writer = FileWriter()

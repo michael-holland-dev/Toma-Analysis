@@ -1,0 +1,1 @@
+from .analysis import numpy_analysis
