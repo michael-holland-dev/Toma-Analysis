@@ -1,2 +1,6 @@
 __pycache__/
 *.csv
+
+*.pth
+segmentation_images/
+*.png

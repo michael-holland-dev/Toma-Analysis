@@ -13,13 +13,15 @@ class ThreadManager:
         self,
         batch: dict
     ):
-        results = []
+        results = {}
         threads = []
         for datapoint in batch:
             if type(datapoint) != dict:
                 raise Exception("Datapoint Must be in Dictionary Format")
+
+            datapoint.update({"results": results})
             
-            thread = threading.Thread(target=self.analyzer.analyze(datapoint, results), kwargs=datapoint.update({"results": results}))
+            thread = threading.Thread(target=self.analyzer.analyze, kwargs=datapoint)
             thread.start()
             
             threads.append(thread)
