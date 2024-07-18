@@ -1,2 +1,2 @@
-from datasets.dataset_base import Dataset
-from datasets.tomography_paths import TomographyPaths
+from .dataset_base import Dataset
+from .tomography_paths import TomographyPaths

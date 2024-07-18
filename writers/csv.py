@@ -10,11 +10,26 @@ class CSV(Writer):
         df = pd.DataFrame(batch_results)
         
         if os.path.exists(self.file_path):
-            prior_set = pd.read_csv(df)
-
+            prior_set = pd.read_csv(self.file_path)
             df = pd.concat([df, prior_set])
 
-        df.to_csv(self.file_path)
+        df.to_csv(self.file_path, index=False)
+    
+    def write_rows(self, data: dict):
+        """
+        Write multiple rows of data to the CSV file using pandas.
+
+        Args:
+        - data (dict): Dictionary where keys are row identifiers and values are lists representing rows of data.
+        """
+        df = pd.DataFrame.from_dict(data, orient='index')
+        df.to_csv(self.file_path, mode='a', header=False)
+
+    def close(self):
+        """
+        Close the CSV file.
+        """
+        self.file.close()  # Close the CSV file
     
     
 

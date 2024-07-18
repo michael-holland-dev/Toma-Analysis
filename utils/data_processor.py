@@ -26,7 +26,7 @@ class Processor:
             # Load the current batch
             current_batch = []
             while len(current_batch) < self.__batch_size and len(dataset) != 0:
-                current_batch.append(dataset.pop())
+                current_batch.append(dataset.pop()) # this should append a list of dictionaries
             
             # Submit batch
             batch_results = self.__threader.submit_batch(current_batch)

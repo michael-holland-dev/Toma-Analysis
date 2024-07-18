@@ -11,7 +11,7 @@ class ThreadManager:
     
     def submit_batch(
         self,
-        batch: list
+        batch: dict
     ):
         results = []
         threads = []
@@ -19,9 +19,9 @@ class ThreadManager:
             if type(datapoint) != dict:
                 raise Exception("Datapoint Must be in Dictionary Format")
             
-            thread = threading.Thread(target=self.analyzer.analyze, kwargs=datapoint.update({"results": results}))
+            thread = threading.Thread(target=self.analyzer.analyze(datapoint, results), kwargs=datapoint.update({"results": results}))
             thread.start()
-
+            
             threads.append(thread)
 
         for thread in threads:

@@ -1,43 +1,44 @@
 import os
 from abc import ABC, abstractmethod
+import subprocess
 
 class Dataset(ABC):
-    def __init__(
-            self,
-            data_folder_path: str,
-            max_files: int=None,
-        ):
-
-        # Set the max files variable. If it's none, then have it be 
+    def __init__(self, data_folder_path: list, max_files: int = None):
         self.max_files = max_files if max_files is not None else float('inf')
+        self.fpaths = {}  # Dictionary to store clean results
+        
+        file_count = 0  # To keep track of the number of files processed
+        
+        for path in data_folder_path:
+            try:
+                # Run the lfs find command to locate .rec files
+                result = subprocess.run(["lfs", "find", path, "-type", "f", "--name", "*.rec"],
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE,
+                                        text=True,
+                                        check=True) 
+                # Process the output of the command
+                for name in result.stdout.splitlines():
+                    if file_count >= self.max_files:
+                        break
 
-        # Have it search for all of the .mrc files
-        self.fpaths = []
-        path, root_folders, _ = next(os.walk(data_folder_path))
-        root_folders.remove("fslg_documents")
+                    components = name.split('/')
+                    found_peet = False
+                    for component in components:
+                        if 'peet' in component.lower() or "align" in component.lower():
+                            found_peet = True
+                            break
+                    if not found_peet:
+                        self.fpaths[file_count] = name
+                        file_count += 1
 
-        for folder in root_folders:
-            # Recursively search through all of the data directories for the .mrc files
-            self.__data_folder_path_helper(path, folder)
-
-    def __data_folder_path_helper(self, fpath, top_folder):
-        cwd = os.path.join(fpath, top_folder)
-        path, folders, files = next(os.walk(cwd))
-
-        for file in files:
-            if ".rec" in file:
-                self.fpaths.append(os.path.join(cwd, file))
-
-        if len(self.fpaths) < self.max_files:
-            for folder in folders:
-                # Makes sure that the folder isn't a hidden folder.
-                if folder[0] != ".":
-                    self.__data_folder_path_helper(path, folder)
+            except subprocess.CalledProcessError as e:
+                print(f"An error occurred while running the subprocess: {e}")
     
     @abstractmethod
     def __len__(self):
         pass
     
     @abstractmethod
-    def pop(self):
+    def pop(self, index: int = -1):
         pass

@@ -141,8 +141,7 @@ def read_file_to_list(input_file):
     Returns:
     - list: List containing lines read from the input file.
     """
-    with open(input_file, 'r') as infile:
-        lines = [line.strip() for line in infile]
+    
     return lines
 
 # Function to normalize numpy array between 0 and 1
