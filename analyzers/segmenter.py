@@ -1,33 +1,37 @@
-from segment_anything import sam_model_registry, SamPredictor
-import matplotlib.pyplot as plt
+from image_processing_pipelines.image_pipeline import ImagePipeline
 import numpy as np
-import cv2
-import pandas as pd
-from sklearn.cluster import DBSCAN
 from analyzers import Analysis
-from utils.image_processor import ImageProcessor
+import os
+
+from segment_anything import sam_model_registry, SamPredictor
+from segment_anything.utils.onnx import SamOnnxModel
+import torch
+import warnings
+import onnxruntime
 
 class BacteriaSegmenter(Analysis):
     def __init__(
         self,
+        image_processing_pipeline: ImagePipeline,
         sam_checkpoint = "sam_vit_h_4b8939.pth",
         model_type = "vit_h",
         device="cuda",
-        contrast_factor:float=8,
-        threshold_factor:float=0.01,
-        dbscan_epsilon:float=5,
-        gaussian_sigma:float=200,
-        display_plots:bool=False,
+        model_path:str="./models/"
     ):
-        self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
-        self.sam.to(device)
+        self.ipp = image_processing_pipeline
+        self.model_path = model_path
 
-        self.contrast_factor = contrast_factor
-        self.threshold_factor = threshold_factor
-        self.dbscan_epsilon = dbscan_epsilon
-        self.gaussian_sigma = gaussian_sigma
-        self.display_plots = display_plots
-    
+        if not os.path.exists(model_path):
+            os.makedirs(model_path)
+            self.model_path = model_path
+
+        self.__setup_sam(
+            sam_checkpoint=sam_checkpoint,
+            model_type=model_type,
+            device=device
+        )
+        
+   
     def analyze(
             self,
             data,
@@ -35,112 +39,116 @@ class BacteriaSegmenter(Analysis):
             results: dict,
             **kwargs
         ):
-        contrasted_bacteria = ImageProcessor.contrast(data, self.contrast_factor)
-        bacteria_mask = ImageProcessor.threshold_lt(contrasted_bacteria, self.threshold_factor)
-        if self.display_plots:
-            plt.imshow(bacteria_mask, cmap="gray")
-            plt.title("Contrast Bacteria")
-            plt.show()
 
-        blurred_bacteria = cv2.GaussianBlur(contrasted_bacteria, (15,15), self.gaussian_sigma)
-        if self.display_plots:
-            plt.imshow(blurred_bacteria, cmap="gray")
-            plt.title("Blurred Contrast Bacteria")
-            plt.show()
+        # Process Images
+        processed_data = self.ipp.process_image(data)
 
+        # Format data to be usable by SAM
+        positive_labels = np.ones_like(processed_data["positive_points"][:,0]).astype(int)
+        negative_labels = np.zeros_like(processed_data["negatives_points"][:,0]).astype(int)
 
-        # Create filtered mask
-        initial_detection = bacteria_mask.copy()
-        blurred_mask = cv2.blur(initial_detection,(15,15))
-        second_bacteria_mask = ImageProcessor.threshold_gt(blurred_mask, np.percentile(blurred_mask, 95))
+        points = np.concatenate([processed_data["positive_points"], processed_data["negatives_points"]])
+        labels = np.concatenate([positive_labels, negative_labels])
+        bacteria = np.concatenate([processed_data["bacteria_to_segment"][np.newaxis, ...]] * 3, axis=0).transpose((1,2,0))
 
-        if self.display_plots:
-            plt.imshow(second_bacteria_mask, cmap="gray")
-            plt.show()
-
-        # Cluster filtered mask to get clustered centroids
-        initial_points = np.where(second_bacteria_mask == 1)
-        labels = ImageProcessor.cluster(
-            x_points=initial_points[0],
-            y_points=initial_points[1],
-            eps=self.dbscan_epsilon,
-            min_samples=20
+        # Run SAM
+        mask = self.__run_sam(
+            points,
+            labels,
+            bacteria,
         )
-
-        # Format the points in a specific way
-        point_classes = np.concatenate([np.array(initial_points), labels.reshape(1,-1)]).transpose(1,0)
-        df = pd.DataFrame(point_classes, columns=["x_coord", "y_coord", "labels"])
-        centroids = df.groupby("labels").mean()
-        centroids.drop(-1, axis=0)
-        centroids = centroids.to_numpy()
-
-        if self.display_plots:
-            plt.imshow(data, cmap="gray")
-            plt.scatter(initial_points[1], initial_points[0], c=labels)
-            cx, cy = zip(*centroids)
-            plt.scatter(cy, cx, c="red")
-            plt.title("Points and Clusters")
-            plt.show()
-
-        # Cluster the initial centroids
-        dbscan_two = DBSCAN(
-            eps=200,
-            min_samples=20
-        )
-        centroids = centroids
-        labels = dbscan_two.fit_predict(centroids)
-
-        # Find the cluster with the largest number of centroids.
-        counts = {str(label): [] for label in set(labels)}
-        for i in range(len(labels)):
-            label = str(labels[i])
-            counts[label].append(centroids[i][::-1])
-        max_count = -1
-        max_key = 0
-        for cluster_key, value in counts.items():
-            if len(value) > max_count:
-                max_key = cluster_key
-                max_count = len(value)
-        
-        predicted_bacteria_locations = np.array(counts[max_key])
-
-        # Format data to be usable by sam
-        labels = np.ones_like(predicted_bacteria_locations[:,0]).astype(int)
-        rgb_bacteria = np.concatenate([blurred_bacteria[np.newaxis, ...]] * 3, axis=0).transpose((1,2,0))
-
-        predictor = SamPredictor(self.sam)
-        predictor.set_image(rgb_bacteria)
-        masks, scores, logits = predictor.predict(
-            point_coords=predicted_bacteria_locations,
-            point_labels=labels,
-            multimask_output=True
-        )
-
-        best_score = 0
-        selected_mask = None
-        for mask, score in zip(masks, scores):
-            
-            if score > best_score:
-                best_score = score
-                selected_mask = mask
-            
-            if self.display_plots:
-                plt.imshow(data)
-                # GraphPlotter.show_mask(mask, plt.gca())
-                # GraphPlotter.show_points(predicted_bacteria_locations, labels, plt.gca())
-                plt.title(f"Mask {i+1}, Score: {score:.3f}", fontsize=18)
-                plt.axis('off')
-                plt.show()
 
         seg_results = {
             "image": data,
             "mask": mask,
             "pts": {
-                "coords": predicted_bacteria_locations,
+                "coords": points,
                 "labels": labels
-            },
-            "idx": kwargs["idx"]
+            }
         }
 
         results[key] = seg_results
+    
+    def __setup_sam(
+            self,
+            model_type,
+            sam_checkpoint,
+            device,
+            onnx_filename="sam_onnx.onnx"
+        ):
+        self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
 
+        self.onnx_filepath = os.path.join(self.model_path, onnx_filename)
+        if not os.path.exists(self.onnx_filepath):
+            onnx_model_path = "sam_onnx_example.onnx"
+
+            onnx_model = SamOnnxModel(self.sam, return_single_mask=True)
+            dynamic_axes = {
+                "point_coords": {1: "num_points"},
+                "point_labels": {1: "num_points"},
+            }
+
+            embed_dim = self.sam.prompt_encoder.embed_dim
+            embed_size = self.sam.prompt_encoder.image_embedding_size
+            mask_input_size = [4 * x for x in embed_size]
+            dummy_inputs = {
+                "image_embeddings": torch.randn(1, embed_dim, *embed_size, dtype=torch.float),
+                "point_coords": torch.randint(low=0, high=1024, size=(1, 5, 2), dtype=torch.float),
+                "point_labels": torch.randint(low=0, high=4, size=(1, 5), dtype=torch.float),
+                "mask_input": torch.randn(1, 1, *mask_input_size, dtype=torch.float),
+                "has_mask_input": torch.tensor([1], dtype=torch.float),
+                "orig_im_size": torch.tensor([1500, 2250], dtype=torch.float),
+            }
+            output_names = ["masks", "iou_predictions", "low_res_masks"]
+
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=torch.jit.TracerWarning)
+                warnings.filterwarnings("ignore", category=UserWarning)
+                with open(onnx_model_path, "wb") as f:
+                    torch.onnx.export(
+                        onnx_model,
+                        tuple(dummy_inputs.values()),
+                        f,
+                        export_params=True,
+                        verbose=False,
+                        opset_version=17,
+                        do_constant_folding=True,
+                        input_names=list(dummy_inputs.keys()),
+                        output_names=output_names,
+                        dynamic_axes=dynamic_axes,
+                    )   
+        
+        self.sam_onnx = SamOnnxModel(self.sam, return_single_mask=True)
+        self.sam.to(device)
+    
+    def __run_sam(
+            self,
+            bacteria,
+            coords,
+            labels,
+        ):
+        predictor = SamPredictor(self.sam)
+        predictor.set_image(bacteria)
+        image_embedding = predictor.get_image_embedding().cpu().numpy()
+
+        ort_session = onnxruntime.InferenceSession(self.onnx_filepath)
+        onnx_coord = np.concatenate([coords, np.array([[0.0, 0.0]])], axis=0)[None, :, :]
+        onnx_label = np.concatenate([labels, np.array([-1])], axis=0)[None, :].astype(np.float32)
+        onnx_coord = predictor.transform.apply_coords(onnx_coord, bacteria[:2]).astype(np.float32)
+
+        onnx_mask_input = np.zeros((1, 1, 256, 256), dtype=np.float32)
+        onnx_has_mask_input = np.zeros(1, dtype=np.float32)
+
+        ort_inputs = {
+            "image_embeddings": image_embedding,
+            "point_coords": onnx_coord,
+            "point_labels": onnx_label,
+            "mask_input": onnx_mask_input,
+            "has_mask_input": onnx_has_mask_input,
+            "orig_im_size": np.array(bacteria.shape[:2], dtype=np.float32)
+        }
+
+        mask, _, _ = ort_session.run(None, ort_inputs)
+        mask = mask > predictor.model.mask_threshold
+
+        return mask

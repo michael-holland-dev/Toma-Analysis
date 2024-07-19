@@ -2,21 +2,24 @@ from writers import SegmentationSaver
 from analyzers import BacteriaSegmenter
 from datasets import TomographySlices
 from utils.data_factory import DataFactory
-import torch
+from image_processing_pipelines import ThresholdClusterPipeline
 import os
 
+if "TOMOGRAM_PATH" not in os.environ.keys():
+    os.environ["TOMOGRAM_PATH"] = "/home/mwh1998/fsl_groups/grp_tomo_db1_d3/compute/TomoDB1_d3/Hneptunium_secretin/aba2006-11-01-6/Hyphomonas_10bin_full.rec"
+
 def main():
+    # Sets up a tomography to pull slices from
     print("Compiling Dataset...")
-    
-    # Sets up a tomography to pull slices
-    data = TomographySlices(
-        os.environ["TOMOGRAM_FPATH"],
-        100
-    )
+    data = TomographySlices(os.environ["TOMOGRAM_PATH"])
 
     print("Setting up Analysis Pipeline...")
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    analyzer = BacteriaSegmenter(device=device)
+    # Sets up a segmentation pipeline
+    device = "cuda"
+    analyzer = BacteriaSegmenter(
+        image_processing_pipeline=ThresholdClusterPipeline(),
+        device=device
+    )
 
     print("Setting up Writer...")
     writer = SegmentationSaver(data.bacteria_name)
@@ -30,7 +33,7 @@ def main():
     )
 
     print("Processing Data...")
-    data_factory.process(data)
+    data_factory.process(data, "Processing Slice")
 
 
 if __name__ == "__main__":

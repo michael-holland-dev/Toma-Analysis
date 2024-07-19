@@ -7,6 +7,10 @@ class Writer(ABC):
     @abstractmethod
     def write(self, results: list, **kwargs):
         pass
+    
+    @abstractmethod
+    def finish_and_save(self):
+        pass
 
 if __name__ == "__main__":
     writer = Writer()

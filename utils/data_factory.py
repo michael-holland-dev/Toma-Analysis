@@ -20,10 +20,11 @@ class DataFactory:
     
     def process(
         self,
-        dataset: Dataset
+        dataset: Dataset,
+        loading_bar_string: str
     ):
         batch_num = 1
-        loading_bar = tqdm.tqdm(total=len(dataset), desc="Processing Datapoints")
+        loading_bar = tqdm.tqdm(total=len(dataset), desc=loading_bar_string)
 
         while len(dataset) != 0:
             # Load the current batch
@@ -44,4 +45,6 @@ class DataFactory:
                     self.__checkpointer.checkpoint()
                 
             batch_num += 1
+        
+        self.__writer.finish_and_save()
 

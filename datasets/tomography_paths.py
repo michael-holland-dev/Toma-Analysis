@@ -55,8 +55,8 @@ class TomographyPaths(Dataset):
 
 if __name__ == "__main__":
     
-    l_paths = ["/home/matiasgp/groups/grp_tomo_db1_d1/nobackup/archive/TomoDB1_d1/FlagellarMotor_P1", 
-                    "/home/matiasgp/groups/grp_tomo_db1_d2/nobackup/archive/TomoDB1_d2/FlagellarMotor_P2", 
+    l_paths = [#"/home/matiasgp/groups/grp_tomo_db1_d1/nobackup/archive/TomoDB1_d1/FlagellarMotor_P1", 
+                    # "/home/matiasgp/groups/grp_tomo_db1_d2/nobackup/archive/TomoDB1_d2/FlagellarMotor_P2", 
                     "/home/matiasgp/groups/grp_tomo_db1_d3/nobackup/archive/TomoDB1_d3", 
                     "/home/matiasgp/groups/grp_tomo_db1_d4/nobackup/archive/TomoDB1_d4"
                 ]
