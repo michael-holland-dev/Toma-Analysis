@@ -2,7 +2,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class Slide:
-    def __init__(self, numpy_array, output_name):
+    def __init__(self, 
+                 numpy_array, 
+                 output_name
+                 ):
         """
         Initialize the Slide object.
         
@@ -13,7 +16,12 @@ class Slide:
         self.numpy_array = numpy_array  # Store the numpy array
         self.outputname = output_name  # Store the output file name
         
-    def plot_2d_img(self, axis, slice_index, xlabel, ylabel):
+    def plot_2d_img(self, 
+                    axis, 
+                    slice_index, 
+                    xlabel, 
+                    ylabel
+                    ):
         """
         Plot a 2D slice of the 3D image array and save it to the output file.
         
@@ -42,7 +50,10 @@ class Slide:
         plt.close()
         return mean_value
     
-    def plot_3d_img(self, axis, slice_index):
+    def plot_3d_img(self,
+                    axis, 
+                    slice_index
+                    ):
         """
         Plot a 2D slice from the 3D image array along a specified axis and save it to the output file.
         

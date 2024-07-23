@@ -3,35 +3,43 @@ import pandas as pd
 import os
 
 class CSV(Writer):
-    def __init__(self, output_file):
-        super().__init__()
+    def __init__(self, output_file="./myfile.csv"):
+        super().__init__(output_file)
+        self.df = pd.DataFrame()  # Initialize an empty DataFrame to accumulate results
 
-    def write(self, batch_results):
-        df = pd.DataFrame(batch_results)
+    def write(self, results: dict, **kwargs):
+        """
+        Write results to the DataFrame and prepare to save to CSV.
         
-        if os.path.exists(self.file_path):
-            prior_set = pd.read_csv(self.file_path)
-            df = pd.concat([df, prior_set])
-
-        df.to_csv(self.file_path, index=False)
-    
-    def write_rows(self, data: dict):
-        """
-        Write multiple rows of data to the CSV file using pandas.
-
         Args:
-        - data (dict): Dictionary where keys are row identifiers and values are lists representing rows of data.
+        - results (dict): Dictionary where keys are row identifiers and values are dicts representing rows of data.
         """
-        df = pd.DataFrame.from_dict(data, orient='index')
-        df.to_csv(self.file_path, mode='a', header=False)
+        rows = []
+        
+        # Determine all possible columns from the entire dataset
+        all_columns = set()
+        for attrs in results.values():
+            all_columns.update(attrs.keys())
+        all_columns = sorted(all_columns)  # Sort columns to maintain order
+        
+        for path, attrs in results.items():
+            row = {'file_path': path}
+            for column in all_columns:
+                row[column] = attrs.get(column, None)  # Use None if column is missing in the attributes
+            rows.append(row)
+        
+        # Convert rows to a DataFrame
+        new_df = pd.DataFrame(rows)
+        
+        # Append new data to the existing DataFrame
+        self.df = pd.concat([self.df, new_df], ignore_index=True)
+         
+    def finish_and_save(self):
+        """
+        Save the accumulated DataFrame to the CSV file.
+        """
+        self.df.to_csv(self.file_path, index=False)
 
-    def close(self):
-        """
-        Close the CSV file.
-        """
-        self.file.close()  # Close the CSV file
-    
-    
 
 
 if __name__ == "__main__":

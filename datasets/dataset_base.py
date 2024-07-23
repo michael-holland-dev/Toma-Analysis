@@ -5,7 +5,7 @@ import subprocess
 class Dataset(ABC):
     def __init__(self, data_folder_path: list, max_files: int = None):
         self.max_files = max_files if max_files is not None else float('inf')
-        self.fpaths = {}  # Dictionary to store clean results
+        self.fpaths = []  # List to store clean results
         
         file_count = 0  # To keep track of the number of files processed
         
@@ -29,7 +29,7 @@ class Dataset(ABC):
                             found_peet = True
                             break
                     if not found_peet:
-                        self.fpaths[file_count] = name
+                        self.fpaths.append(name)
                         file_count += 1
 
             except subprocess.CalledProcessError as e:
