@@ -20,9 +20,13 @@ class TomographyArray(Dataset):
         with mrcfile.open(self.fpaths[idx]) as mrc:
             self.tomogram = mrc.data.copy()
         self.height = self.tomogram.shape[0]
-        margin = int(self.height * 0.2)
+        
+        # Eliminate top and bottom of the tomogram
+        # margin = int(self.height * 0.2)
+        # self.tomogram = self.tomogram[margin:(self.height - margin), :, :]
+        
         self.bacteria_name = self.fpaths[idx].split("/")[-1].split(".")[0]
-        self.tomogram = self.tomogram[margin:(self.height - margin), :, :]
+        
         self.current_idx += 1
         return {
             "key": self.fpaths[idx],

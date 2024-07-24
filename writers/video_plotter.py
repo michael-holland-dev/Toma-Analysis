@@ -55,21 +55,32 @@ class Video(Slide):
                 raise ValueError("Axis must be 0, 1, or 2")
             
             # Create a temporary file to save the plot
-            temp_filename = f'temp_slice_{start}_{end}_{self.outputname}.png'
+            temp_filename = f'temp_slice_{start}_{end}_{self.outputname+str(axis)}.png'
             temp = Slide(slice_data, temp_filename)
             listofmeans.append(temp.plot_2d_img(axis, start, xlabel, ylabel))
             filenames.append(temp_filename)
         
-        # Create a video from the saved images
-        with iio.get_writer(str("/home/matiasgp/Desktop/Toma-Analysis/tests/normalized_"+self.outputname+".mp4"), mode='I', fps=4) as writer:
+        # Define the path for the video file
+        output_directory = '/home/matiasgp/Desktop/Toma-Analysis/' + self.outputname + "/"
+        output_filename = 'normalized_' + self.outputname + str(axis) + '.mp4'
+        video_path = os.path.join(output_directory, output_filename)
+
+        # Ensure the output directory exists
+        if not os.path.exists(output_directory):
+            os.makedirs(output_directory)
+
+        # Create the video from the saved images
+        with iio.get_writer(video_path, mode='I', fps=4) as writer:
             print("Creating Video")
             for filename in filenames:
                 image = iio.imread(filename)
                 writer.append_data(image)
                 
         # Create a plot with the means through time
-        plot_bar_chart(data=listofmeans,
-                       title=self.outputname,
+        plot_bar_chart(self,
+                       data=listofmeans,
+                       axis=axis,
+                       title=self.outputname + str(axis),
                        ylabel="Mean"
                        )
         
@@ -78,7 +89,9 @@ class Video(Slide):
             os.remove(filename)
 
 # Comments added by ChatGPT
-def plot_bar_chart(data, 
+def plot_bar_chart(self,
+                   data,
+                   axis, 
                    title='Bar Chart',
                    xlabel='Slice',
                    ylabel='Value'
@@ -98,9 +111,14 @@ def plot_bar_chart(data,
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
 
-    # Save the plot with the title as the filename
-    # Replace spaces in title with underscores and add .png extension
-    filename = "/home/matiasgp/Desktop/Toma-Analysis/tests/hist_" + title.replace(' ', '_') + '.png'
+    # Define the directory and filename
+    output_directory = '/home/matiasgp/Desktop/Toma-Analysis/' + self.outputname + "/"
+    filename = os.path.join(output_directory, "hist_" + title.replace(' ', '_') + '.png')
+    
+    # Create the directory if it doesn't exist
+    os.makedirs(output_directory, exist_ok=True)
+    
+    # Save the plot to the specified file
     plt.savefig(filename)
     plt.close()
     
