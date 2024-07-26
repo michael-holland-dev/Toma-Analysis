@@ -2,3 +2,4 @@ from datasets.dataset_base import Dataset
 from datasets.tomography_paths import TomographyPaths
 from datasets.tomography_slice import TomographySlices
 from datasets.tomography_array import TomographyArray
+from datasets.tomography_dataset_slices import TomographyDatasetSlices
