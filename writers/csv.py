@@ -4,8 +4,18 @@ import os
 
 class CSV(Writer):
     def __init__(self, output_file="./myfile.csv"):
-        super().__init__(output_file)
+        self.file_path = output_file
         self.df = pd.DataFrame()  # Initialize an empty DataFrame to accumulate results
+        self._load_existing_data()
+
+    def _load_existing_data(self):
+        """
+        Load existing data from the CSV file if it exists.
+        """
+        if os.path.exists(self.file_path):
+            self.df = pd.read_csv(self.file_path)
+        else:
+            print(f"No existing file found. A new file will be created at {self.file_path}.")
 
     def write(self, results: dict, **kwargs):
         """
@@ -15,6 +25,7 @@ class CSV(Writer):
         - results (dict): Dictionary where keys are row identifiers and values are dicts representing rows of data.
         """
         rows = []
+        print(results)
         
         # Determine all possible columns from the entire dataset
         all_columns = set()
@@ -39,7 +50,7 @@ class CSV(Writer):
         Save the accumulated DataFrame to the CSV file.
         """
         self.df.to_csv(self.file_path, index=False)
-
+        print(f"Data saved to {self.file_path}")
 
 
 if __name__ == "__main__":

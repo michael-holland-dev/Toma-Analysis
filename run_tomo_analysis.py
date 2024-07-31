@@ -11,18 +11,7 @@ import os
 def main():
     # Sets up a tomography to pull slices from
     print("Compiling Dataset...")
-    data = TomographyArray(["/home/matiasgp/groups/grp_tomo_db1_d3/nobackup/archive/TomoDB1_d3/Hneptunium_secretin/aba2006-11-01-6/Hyphomonas_10bin_full.rec"])
-    """Test code"""
-    # while True:
-    #     try:
-    #         result = data.pop()
-    #         print(f"Key: {result['key']}")
-    #         print(f"Data Shape: {result['data'].shape}")
-    #     except IndexError:
-    #         # Break the loop if there are no more items to pop
-    #         print("No more data to process.")
-    #         break
-    """End of Test Code"""
+    data = TomographyArray(["/home/matiasgp/groups/grp_tomo_db1_d1/nobackup/archive/TomoDB1_d1/FlagellarMotor_P1/Caulobacter crescentus"])
     
     print("Setting up Analysis Pipeline...")
     # Sets up an analysis pipeline

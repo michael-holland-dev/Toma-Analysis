@@ -1,3 +1,5 @@
+import matplotlib
+matplotlib.use('Agg')  # Use a non-interactive backend
 import matplotlib.pyplot as plt
 from .img_plotter import Slide
 import numpy as np
@@ -47,10 +49,10 @@ class Video(Slide):
                 xlabel, ylabel = 'Y axis', 'Z axis'
             elif axis == 1:
                 slice_data = np.mean(self.numpy_array[:, start:end, :], axis=1)
-                xlabel, ylabel = 'X axis', 'Z axis'
+                xlabel, ylabel = 'Z axis', 'X axis'
             elif axis == 2:
                 slice_data = np.mean(self.numpy_array[:, :, start:end], axis=2)
-                xlabel, ylabel = 'X axis', 'Y axis'
+                xlabel, ylabel = 'Y axis', 'X axis'
             else:
                 raise ValueError("Axis must be 0, 1, or 2")
             
@@ -62,7 +64,7 @@ class Video(Slide):
         
         # Define the path for the video file
         output_directory = '/home/matiasgp/Desktop/Toma-Analysis/' + self.outputname + "/"
-        output_filename = 'normalized_' + self.outputname + str(axis) + '.mp4'
+        output_filename =  self.outputname + str(axis) + '.mp4'
         video_path = os.path.join(output_directory, output_filename)
 
         # Ensure the output directory exists
