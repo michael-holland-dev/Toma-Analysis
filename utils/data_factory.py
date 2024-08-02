@@ -30,7 +30,7 @@ class DataFactory:
             # Load the current batch
             current_batch = []
             while len(current_batch) < self.__batch_size and len(dataset) != 0:
-                current_batch.append(dataset.random_pop()) # this should append a list of dictionaries
+                current_batch.append(dataset.pop()) # this should append a list of dictionaries
             
             # Submit batch
             batch_results = self.__threader.submit_batch(current_batch)
@@ -46,6 +46,9 @@ class DataFactory:
                     self.__checkpointer.checkpoint()
                 
             batch_num += 1
+            return batch_results
         
         self.__writer.finish_and_save()
+        
+        
 

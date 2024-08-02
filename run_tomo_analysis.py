@@ -13,10 +13,11 @@ def main():
     print("Compiling Dataset...")
     data = TomographyArray(["/home/matiasgp/groups/grp_tomo_db1_d1/nobackup/archive/TomoDB1_d1/FlagellarMotor_P1/Caulobacter crescentus"])
     
-    print("Setting up Analysis Pipeline...")
     # Sets up an analysis pipeline
+    print("Setting up Analysis Pipeline...")
     analyzer = TomoStats()
 
+    # Sets up a writer
     print("Setting up Writer...")
     writer = CSV("tomostats.csv")
     

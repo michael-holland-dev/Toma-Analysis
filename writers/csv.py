@@ -13,7 +13,10 @@ class CSV(Writer):
         Load existing data from the CSV file if it exists.
         """
         if os.path.exists(self.file_path):
-            self.df = pd.read_csv(self.file_path)
+            try:
+                self.df = pd.read_csv(self.file_path)
+            except pd.errors.EmptyDataError:
+                print(f"The file {self.file_path} is empty. Starting with a new DataFrame.")
         else:
             print(f"No existing file found. A new file will be created at {self.file_path}.")
 
@@ -25,7 +28,6 @@ class CSV(Writer):
         - results (dict): Dictionary where keys are row identifiers and values are dicts representing rows of data.
         """
         rows = []
-        print(results)
         
         # Determine all possible columns from the entire dataset
         all_columns = set()
@@ -51,7 +53,6 @@ class CSV(Writer):
         """
         self.df.to_csv(self.file_path, index=False)
         print(f"Data saved to {self.file_path}")
-
 
 if __name__ == "__main__":
     writer = CSV()

@@ -2,6 +2,7 @@ from analyzers.analysis_base import Analysis
 from analyzers.segmenter import BacteriaSegmenter
 from analyzers.basic import Basic
 from analyzers.tomo_stats import TomoStats
+from analyzers.dataset_mean_analyzer import DatasetMeansAnalyzer
 
 
 def get_analysis(analysis_type):
