@@ -4,6 +4,8 @@ from writers.excel import Excel
 from writers.tomo_seg import SegmentationSaver
 from writers.video_plotter import Video
 from writers.img_plotter import Slide
+from writers.dict import DictSaver
+
 
 def get_writer(
         writer_string: str = "csv",

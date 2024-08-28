@@ -2,7 +2,6 @@ from datasets.tomography_paths import Dataset
 import numpy as np
 import mrcfile
 import random
-import os
 import sys
 
 class TomographyArrayDownsampled(Dataset):

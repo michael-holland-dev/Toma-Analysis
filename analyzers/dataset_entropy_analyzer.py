@@ -9,7 +9,8 @@ class DatasetEntropyAnalyzer(Analysis):
     
     def analyze(self, data, key, results: dict, **kwargs):
         try:
-            data = min_max_normalize(data) 
+            data_pre = data
+            data = min_max_normalize(data_pre) 
             data = histogram_equalization_3d(data)
             d_shp = data.shape  # Get shape of the numpy array
             
@@ -30,7 +31,8 @@ class DatasetEntropyAnalyzer(Analysis):
                 "means_0": means0,
                 "means_1": means1,
                 "means_2": means2,
-                "data": data
+                "data": data,
+                "data_pre": data_pre
             }
             results[key] = seg_results
                     

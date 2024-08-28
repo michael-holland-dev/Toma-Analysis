@@ -40,7 +40,7 @@ class TomographyDatasetSlices(Dataset):
         
         return {
             "key": self.bacteria_name,
-            "data": [middle_slice, center] #REVIEW
+            "data": [middle_slice, center]
         }
         
 

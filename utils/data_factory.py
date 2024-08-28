@@ -37,7 +37,6 @@ class DataFactory:
 
             # Write the results to the file.
             self.__writer.write(batch_results)
-            self.__writer.finish_and_save()
 
             loading_bar.update(len(batch_results))
 
