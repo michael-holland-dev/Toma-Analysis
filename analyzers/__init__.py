@@ -4,7 +4,7 @@ from analyzers.basic import Basic
 from analyzers.tomo_stats import TomoStats
 from analyzers.dataset_mean_analyzer import DatasetMeansAnalyzer
 from analyzers.dataset_entropy_analyzer import DatasetEntropyAnalyzer
-from analyzers.intensity_segmenter import DatasetAnalyzer
+from analyzers.intensity_segmenter import IntensitySegmenter
 
 def get_analysis(analysis_type):
     analysis_type = analysis_type.lower()

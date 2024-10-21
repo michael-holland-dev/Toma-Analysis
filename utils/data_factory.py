@@ -34,9 +34,9 @@ class DataFactory:
             
             # Submit batch
             batch_results = self.__threader.submit_batch(current_batch)
-
+            
             # Write the results to the file.
-            self.__writer.write(batch_results)
+            #self.__writer.write(batch_results)
 
             loading_bar.update(len(batch_results))
 
@@ -45,8 +45,9 @@ class DataFactory:
                     self.__checkpointer.checkpoint()
                 
             batch_num += 1
+            
             return batch_results
-        
+            
         self.__writer.finish_and_save()
         
         
